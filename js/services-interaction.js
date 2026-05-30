@@ -2,42 +2,52 @@
 // SERVICES ACCORDION INTERACTION
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Service items toggle
-    const serviceItems = document.querySelectorAll('.service-item');
-
-    serviceItems.forEach(item => {
-        item.addEventListener('click', () => {
-            const isActive = item.classList.contains('active');
-
+    // Service items toggle - using event delegation
+    const servicesList = document.querySelector('.services-list');
+    
+    if (servicesList) {
+        servicesList.addEventListener('click', (e) => {
+            const serviceItem = e.target.closest('.service-item');
+            
+            if (!serviceItem) return;
+            
+            const isActive = serviceItem.classList.contains('active');
+            const allItems = servicesList.querySelectorAll('.service-item');
+            
             // Close all
-            serviceItems.forEach(si => si.classList.remove('active'));
-
-            // Toggle clicked
+            allItems.forEach(item => item.classList.remove('active'));
+            
+            // Open clicked if it wasn't active
             if (!isActive) {
-                item.classList.add('active');
+                serviceItem.classList.add('active');
             }
         });
-    });
+    }
 
     // ============================================
     // FAQ ACCORDION
     // ============================================
-    const faqItems = document.querySelectorAll('.faq-item');
-
-    faqItems.forEach(item => {
-        const question = item.querySelector('.faq-question');
-        question.addEventListener('click', () => {
-            const isActive = item.classList.contains('active');
-
+    const faqList = document.querySelector('.faq-list');
+    
+    if (faqList) {
+        faqList.addEventListener('click', (e) => {
+            const faqItem = e.target.closest('.faq-item');
+            const faqQuestion = e.target.closest('.faq-question');
+            
+            if (!faqItem || !faqQuestion) return;
+            
+            const isActive = faqItem.classList.contains('active');
+            const allItems = faqList.querySelectorAll('.faq-item');
+            
             // Close all
-            faqItems.forEach(fi => fi.classList.remove('active'));
-
-            // Toggle clicked
+            allItems.forEach(item => item.classList.remove('active'));
+            
+            // Open clicked if it wasn't active
             if (!isActive) {
-                item.classList.add('active');
+                faqItem.classList.add('active');
             }
         });
-    });
+    }
 
     // ============================================
     // SCROLL REVEAL (IntersectionObserver)
