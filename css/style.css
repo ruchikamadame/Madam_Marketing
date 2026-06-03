@@ -95,8 +95,8 @@ body::after {
     top: 0;
     transform: translate3d(0, 0, 0);
     transition: width 0.4s cubic-bezier(0.165, 0.84, 0.44, 1),
-                height 0.4s cubic-bezier(0.165, 0.84, 0.44, 1),
-                opacity 0.3s ease;
+        height 0.4s cubic-bezier(0.165, 0.84, 0.44, 1),
+        opacity 0.3s ease;
     opacity: 0;
     background: transparent;
     will-change: transform, opacity;
@@ -145,7 +145,10 @@ nav {
     position: fixed;
     top: 0;
     width: 100%;
-    background: transparent;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     z-index: 1000;
     padding: clamp(14px, 1.8vh, 24px) 0;
 }
@@ -208,7 +211,9 @@ nav {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    background: #1a1a1a;
+    background: rgba(26, 26, 26, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 50px;
     padding: 6px 8px;
@@ -397,7 +402,7 @@ nav {
     text-transform: uppercase;
     cursor: pointer;
     transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1),
-                background 0.3s ease;
+        background 0.3s ease;
     position: relative;
     overflow: hidden;
     will-change: transform;
@@ -464,8 +469,17 @@ nav {
 }
 
 @keyframes scrollPulse {
-    0%, 100% { opacity: 0.3; transform: scaleY(0.6); }
-    50% { opacity: 1; transform: scaleY(1); }
+
+    0%,
+    100% {
+        opacity: 0.3;
+        transform: scaleY(0.6);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scaleY(1);
+    }
 }
 
 /* ============================================
@@ -591,13 +605,14 @@ nav {
     min-height: clamp(250px, 40vh, 400px);
     border-radius: 24px;
     background: #111111;
+    /*box-shadow: 0 2px 50px rgba(255, 255, 255, 0.242);*/
     border: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     overflow: hidden;
-    transition: transform 0.3s ease-out, border-color 0.3s ease;
+    transition: transform 0.1s ease-in-out 0.7s ease-in-out, border-color 0.7s ease-in-out, box-shadow 0.7s ease-in-out;
     cursor: pointer;
     will-change: transform;
 }
@@ -609,13 +624,14 @@ nav {
     height: auto;
     object-fit: contain;
     position: relative;
-    z-index: 2;
-    transition: transform 0.3s ease;
+    z-index: 5;
+    transition: transform 1s ease;
     pointer-events: none;
 }
 
 .title-card:hover {
     border-color: rgba(220, 20, 60, 0.3);
+    box-shadow: 0 3px 60px rgba(255, 255, 255, 0.25);
 }
 
 .title-card:hover img {
@@ -731,8 +747,8 @@ nav {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                padding 0.5s ease,
-                opacity 0.4s ease;
+        padding 0.5s ease,
+        opacity 0.4s ease;
     opacity: 0;
 }
 
@@ -812,7 +828,7 @@ nav {
     will-change: transform;
 }
 
-.card > * {
+.card>* {
     position: relative;
     z-index: 2;
 }
@@ -822,10 +838,24 @@ nav {
     border-color: rgba(220, 20, 60, 0.3);
 }
 
-.card:nth-child(1) { top: 100px; }
-.card:nth-child(2) { top: 140px; transform: scale(0.98); }
-.card:nth-child(3) { top: 180px; transform: scale(0.96); }
-.card:nth-child(4) { top: 220px; transform: scale(0.94); }
+.card:nth-child(1) {
+    top: 100px;
+}
+
+.card:nth-child(2) {
+    top: 140px;
+    transform: scale(0.98);
+}
+
+.card:nth-child(3) {
+    top: 180px;
+    transform: scale(0.96);
+}
+
+.card:nth-child(4) {
+    top: 220px;
+    transform: scale(0.94);
+}
 
 .card:last-child {
     margin-bottom: 60px;
@@ -1007,27 +1037,40 @@ nav {
 
 .marquee-item {
     flex-shrink: 0;
-    padding: 20px 40px;
+    padding: 16px 40px;
     background: #111111;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 0.85rem;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    transition: color 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.3s ease;
 }
 
 .marquee-item:hover {
-    color: white;
     border-color: var(--accent);
 }
 
+.marquee-item img {
+    height: 50px;
+    width: 50px;
+    display: block;
+    opacity: 0.85;
+    transition: opacity 0.3s ease;
+}
+
+.marquee-item:hover img {
+    opacity: 1;
+}
+
 @keyframes marqueeScroll {
-    0% { transform: translate3d(0, 0, 0); }
-    100% { transform: translate3d(-50%, 0, 0); }
+    0% {
+        transform: translate3d(0, 0, 0);
+    }
+
+    100% {
+        transform: translate3d(-50%, 0, 0);
+    }
 }
 
 /* ============================================
@@ -1440,7 +1483,7 @@ nav {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                padding 0.4s ease;
+        padding 0.4s ease;
 }
 
 .faq-item.active .faq-answer {

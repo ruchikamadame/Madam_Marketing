@@ -128,7 +128,9 @@
         transform: translateX(-50%);
         width: calc(100% - 40px);
         flex-direction: column;
-        background: #1a1a1a;
+        background: rgba(26, 26, 26, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 20px;
         padding: 12px;
@@ -198,8 +200,11 @@
     }
 
     .marquee-item {
-        padding: 14px 28px;
-        font-size: 0.75rem;
+        padding: 12px 28px;
+    }
+
+    .marquee-item img {
+        height: 28px;
     }
 
     .title-card {
