@@ -286,7 +286,7 @@
 .form-group label {
     display: block;
     margin-bottom: 6px;
-    color: rgba(255, 255, 255, 0.9);
+    color: white;
     font-size: 0.8rem;
     font-weight: 500;
 }
@@ -308,7 +308,7 @@
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgb(0, 0, 0);
     border-color: rgba(220, 20, 60, 0.5);
 }
 

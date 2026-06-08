@@ -286,7 +286,7 @@ const bookingForm = document.getElementById('bookingForm');
 bookingForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    // Get form data
+    // Gather form data
     const formData = {
         name: document.getElementById('name').value,
         email: document.getElementById('email').value,
@@ -294,20 +294,35 @@ bookingForm.addEventListener('submit', async (e) => {
         company: document.getElementById('company').value,
         service: document.getElementById('service').value,
         message: document.getElementById('message').value,
-        date: selectedDate,
-        time: selectedTime
+        date: selectedDate ? selectedDate.toISOString().split('T')[0] : null, // YYYY-MM-DD
+        time: selectedTime,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone // client timezone
     };
     
-    // Create Google Calendar event
-    createGoogleCalendarEvent(formData);
+    // Send data to backend API
+    try {
+        const response = await fetch('http://localhost:3000/api/book-consultation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            console.error('Booking failed:', result);
+            alert('Booking failed: ' + (result.message || 'Please try again later'));
+            return;
+        }
+        // Success – open Meet link (already opened in backend via calendar but we also provide link)
+        if (result.data && result.data.meetingLink) {
+            window.open(result.data.meetingLink, '_blank');
+        }
+        showSuccessMessage();
+    } catch (err) {
+        console.error('Error submitting booking:', err);
+        alert('An unexpected error occurred. Please try again later.');
+    }
     
-    // Send email notification (you'll need to set up EmailJS or similar)
-    await sendEmailNotification(formData);
-    
-    // Show success message
-    showSuccessMessage();
-    
-    // Reset and close
+    // Reset and close after short delay
     setTimeout(() => {
         closeModal();
     }, 3000);
