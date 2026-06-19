@@ -3,9 +3,11 @@ const express = require('express');
 const cors = require('cors');
 const { body, validationResult } = require('express-validator');
 const { google } = require('googleapis');
-const nodemailer = require('nodemailer');
-const fs = require('fs');
-const path = require('path');
+
+// Resend (email) and optional fetch (for WhatsApp)
+const { Resend } = require('resend');
+// Node 18+ already has global fetch. If you run an older Node version, uncomment the line below:
+// const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,8 +27,10 @@ const requiredEnvVars = [
   'GOOGLE_CALENDAR_PRIVATE_KEY',
   'GOOGLE_CALENDAR_CALENDAR_ID',
   'ADMIN_EMAIL',
-  'EMAIL_USER',
-  'EMAIL_PASSWORD'
+  // Resend & CallMeBot configuration
+  'RESEND_API_KEY',
+  'CALLMEBOT_APIKEY',
+  'OWNER_WHATSAPP'
 ];
 
 // Validate required environment variables
@@ -117,6 +121,8 @@ app.post('/api/book-consultation', [
 
     // Send emails to both admin and user
     await sendBookingEmails(bookingData, calendarEvent);
+    // ALSO notify the agency owner on WhatsApp
+    await sendWhatsAppNotification(bookingData, calendarEvent);
 
     res.json({
       success: true,
@@ -219,72 +225,62 @@ Message: ${bookingData.message || 'N/A'}
   return response.data;
 }
 
+/** -------------------------------------------------
+ *  SEND EMAILS VIA RESEND
+ * ------------------------------------------------- */
 async function sendBookingEmails(bookingData, calendarEvent) {
   const meetingDate = new Date(calendarEvent.start.dateTime);
   const meetingEnd = new Date(calendarEvent.end.dateTime);
 
-  // Format date/time nicely
-  const dateOptions = { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  };
-  const timeOptions = { 
-    hour: 'numeric', 
-    minute: '2-digit', 
-    hour12: true, 
-    timeZone: bookingData.timezone || 'UTC' 
+  const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const timeOptions = {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: bookingData.timezone || 'UTC',
   };
 
   const dateString = meetingDate.toLocaleDateString('en-US', dateOptions);
   const startTimeStr = meetingDate.toLocaleTimeString('en-US', timeOptions);
   const endTimeStr = meetingEnd.toLocaleTimeString('en-US', timeOptions);
+  const meetLink = calendarEvent.hangoutLink;
 
-  // Email to Admin
-  const adminEmailContent = `
+  // -------------------------------------------------
+  // 1️⃣ ADMIN NOTIFICATION EMAIL
+  // -------------------------------------------------
+  const adminHtml = `
 <h2>New Consultation Booking</h2>
 <p>A new consultation has been booked through the website.</p>
-
 <table style="border-collapse: collapse; width: 100%;">
-  <tr>
-    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Client Name:</td>
-    <td style="padding: 8px; border: 1px solid #ddd;">${bookingData.name}</td>
-  </tr>
-  <tr>
-    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Email:</td>
-    <td style="padding: 8px; border: 1px solid #ddd;"><a href="mailto:${bookingData.email}">${bookingData.email}</a></td>
-  </tr>
-  <tr>
-    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Phone:</td>
-    <td style="padding: 8px; border: 1px solid #ddd;">${bookingData.phone || 'N/A'}</td>
-  </tr>
-  <tr>
-    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Company:</td>
-    <td style="padding: 8px; border: 1px solid #ddd;">${bookingData.company || 'N/A'}</td>
-  </tr>
-  <tr>
-    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Service:</td>
-    <td style="padding: 8px; border: 1px solid #ddd;">${bookingData.service}</td>
-  </tr>
-  <tr>
-    <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Message:</td>
-    <td style="padding: 8px; border: 1px solid #ddd;">${bookingData.message || 'N/A'}</td>
-  </tr>
+  <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Client Name:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.name}</td></tr>
+  <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Email:</td><td style="padding:8px; border:1px solid #ddd;"><a href="mailto:${bookingData.email}">${bookingData.email}</a></td></tr>
+  <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Phone:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.phone || 'N/A'}</td></tr>
+  <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Company:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.company || 'N/A'}</td></tr>
+  <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Service:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.service}</td></tr>
+  <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Message:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.message || 'N/A'}</td></tr>
 </table>
 
 <h3>Meeting Details</h3>
 <p>
   <strong>Date:</strong> ${dateString}<br>
   <strong>Time:</strong> ${startTimeStr} - ${endTimeStr}<br>
-  <strong>Google Meet Link:</strong> <a href="${calendarEvent.hangoutLink}" target="_blank">Join Meeting</a>
+  <strong>Google Meet Link:</strong> <a href="${meetLink}" target="_blank">Join Meeting</a>
 </p>
 
-<p><em>This meeting has been added to your Google Calendar with automatic reminders.</em></p>
-  `;
+<p><em>This meeting has been added to your Google Calendar with automatic reminders.</em></p>`;
 
-  // Email to User
-  const userEmailContent = `
+  await resend.emails.send({
+    from: `Madame Marketing <${process.env.EMAIL_FROM || 'onboarding@resend.dev'}>`,
+    to: process.env.ADMIN_EMAIL,
+    subject: `New Consultation Booking - ${bookingData.name}`,
+    html: adminHtml,
+  });
+  console.log('[INFO] Admin email sent via Resend');
+
+  // -------------------------------------------------
+  // 2️⃣ USER CONFIRMATION EMAIL
+  // -------------------------------------------------
+  const userHtml = `
 <h2>Consultation Confirmed!</h2>
 <p>Thank you for booking a consultation with Madame Marketing. Your meeting has been confirmed.</p>
 
@@ -292,41 +288,51 @@ async function sendBookingEmails(bookingData, calendarEvent) {
 <p>
   <strong>Date:</strong> ${dateString}<br>
   <strong>Time:</strong> ${startTimeStr} - ${endTimeStr} (${bookingData.timezone || 'UTC'})<br>
-  <strong>Google Meet Link:</strong> <a href="${calendarEvent.hangoutLink}" target="_blank">Join Meeting</a>
+  <strong>Google Meet Link:</strong> <a href="${meetLink}" target="_blank">Join Meeting</a>
 </p>
 
-<p>We look forward to speaking with you! If you need to reschedule, please reply to this email.</p>
+<p>We look forward to speaking with you! If you need to reschedule, just reply to this email.</p>
 
-<p>Best regards,<br>Madame Marketing Team</p>
-  `;
+<p>Best regards,<br>Madame Marketing Team</p>`;
 
-  // Send to Admin
-  try {
-    await transporter.sendMail({
-      from: `"Madame Marketing" <${process.env.EMAIL_USER}>`,
-      to: process.env.ADMIN_EMAIL,
-      subject: `New Consultation Booking - ${bookingData.name}`,
-      html: adminEmailContent
-    });
-    console.log('[INFO] Admin email sent successfully');
-  } catch (error) {
-    console.error('[ERROR] Failed to send admin email:', error);
-    throw new Error('Failed to send admin notification');
-  }
+  await resend.emails.send({
+    from: `Madame Marketing <${process.env.EMAIL_FROM || 'onboarding@resend.dev'}>`,
+    to: bookingData.email,
+    subject: `Consultation Confirmed - ${dateString} at ${startTimeStr}`,
+    html: userHtml,
+  });
+  console.log('[INFO] User email sent via Resend');
+}
 
-  // Send to User
-  try {
-    await transporter.sendMail({
-      from: `"Madame Marketing" <${process.env.EMAIL_USER}>`,
-      to: bookingData.email,
-      subject: `Consultation Confirmed - ${dateString} at ${startTimeStr}`,
-      html: userEmailContent
-    });
-    console.log('[INFO] User email sent successfully');
-  } catch (error) {
-    console.error('[ERROR] Failed to send user email:', error);
-    throw new Error('Failed to send user confirmation');
-  }
+/** -------------------------------------------------
+ *  SEND WHATSAPP ALERT VIA TEXTMEBOT
+ * ------------------------------------------------- */
+async function sendWhatsAppNotification(bookingData, calendarEvent) {
+  const meetingDate = new Date(calendarEvent.start.dateTime);
+  const startTime = meetingDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  const dateStr = meetingDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const meetLink = calendarEvent.hangoutLink;
+
+  // Build a URL‑encoded message (WhatsApp accepts %0A for newline)
+  const msg = [
+    '📅 *New Booking Received!*',
+    '',
+    `👤 *Name:* ${bookingData.name}`,
+    `📞 *Phone:* ${bookingData.phone || 'N/A'}`,
+    `📧 *Email:* ${bookingData.email}`,
+    `🏢 *Company:* ${bookingData.company || 'N/A'}`,
+    `🔧 *Service:* ${bookingData.service}`,
+    `📆 *Date:* ${dateStr}`,
+    `⏰ *Time:* ${startTime}`,
+    `🔗 *Meet:* ${meetLink}`
+  ].join('%0A');
+
+  const url = `https://api.textmebot.com/send.php?recipient=${encodeURIComponent(CALLMEBOT_PHONE)}&apikey=${encodeURIComponent(CALLMEBOT_KEY)}&text=${encodeURIComponent(msg)}`;
+
+  // Use global fetch (or the polyfill if you installed node-fetch)
+  const response = await fetch(url);
+  const text = await response.text();
+  console.log('[INFO] WhatsApp alert sent via TextMeBot, response:', text.slice(0, 120));
 }
 
 // =====================================================
