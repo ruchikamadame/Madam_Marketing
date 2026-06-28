@@ -65,20 +65,6 @@ function getGoogleAuth() {
 const calendar = google.calendar({ version: 'v3', auth: getGoogleAuth() });
 
 // =====================================================
-// EMAIL SETUP
-// =====================================================
-const transporter = nodemailer.createTransport({
-  service: process.env.EMAIL_SERVICE || 'gmail',
-  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.EMAIL_PORT) || 587,
-  secure: process.env.EMAIL_SECURE === 'true',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD
-  }
-});
-
-// =====================================================
 // API ROUTES
 // =====================================================
 
@@ -121,8 +107,6 @@ app.post('/api/book-consultation', [
 
     // Send emails to both admin and user
     await sendBookingEmails(bookingData, calendarEvent);
-    // ALSO notify the agency owner on WhatsApp
-    await sendWhatsAppNotification(bookingData, calendarEvent);
 
     res.json({
       success: true,
@@ -302,37 +286,6 @@ async function sendBookingEmails(bookingData, calendarEvent) {
     html: userHtml,
   });
   console.log('[INFO] User email sent via Resend');
-}
-
-/** -------------------------------------------------
- *  SEND WHATSAPP ALERT VIA TEXTMEBOT
- * ------------------------------------------------- */
-async function sendWhatsAppNotification(bookingData, calendarEvent) {
-  const meetingDate = new Date(calendarEvent.start.dateTime);
-  const startTime = meetingDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-  const dateStr = meetingDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  const meetLink = calendarEvent.hangoutLink;
-
-  // Build a URL‑encoded message (WhatsApp accepts %0A for newline)
-  const msg = [
-    '📅 *New Booking Received!*',
-    '',
-    `👤 *Name:* ${bookingData.name}`,
-    `📞 *Phone:* ${bookingData.phone || 'N/A'}`,
-    `📧 *Email:* ${bookingData.email}`,
-    `🏢 *Company:* ${bookingData.company || 'N/A'}`,
-    `🔧 *Service:* ${bookingData.service}`,
-    `📆 *Date:* ${dateStr}`,
-    `⏰ *Time:* ${startTime}`,
-    `🔗 *Meet:* ${meetLink}`
-  ].join('%0A');
-
-  const url = `https://api.textmebot.com/send.php?recipient=${encodeURIComponent(CALLMEBOT_PHONE)}&apikey=${encodeURIComponent(CALLMEBOT_KEY)}&text=${encodeURIComponent(msg)}`;
-
-  // Use global fetch (or the polyfill if you installed node-fetch)
-  const response = await fetch(url);
-  const text = await response.text();
-  console.log('[INFO] WhatsApp alert sent via TextMeBot, response:', text.slice(0, 120));
 }
 
 // =====================================================
