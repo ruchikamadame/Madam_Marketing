@@ -254,7 +254,7 @@ function selectTime(time, element) {
   updateDateTime();
   updateSubmitButton();
 
-  // Collapse calendar and show summary
+  // Collapse calendar and show summary++
   if (selectedDate && selectedTime) {
     updateSummaryText();
     setTimeout(() => {
@@ -316,20 +316,65 @@ bookingForm.addEventListener("submit", async (e) => {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // client timezone
   };
 
-    const message = `Hi Madame Marketing,
+  const message = `Hi Madame Marketing,
     I'd like to book a consultation.
     
     Name: ${formData.name}
     Email: ${formData.email}
     Phone: ${formData.phone}
     Service: ${formData.service}
-    Date: ${selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-    Time: ${selectedDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-    Message: ${formData.message || 'N/A'}`;
-    
-    // Open WhatsApp
-    window.open(`https://wa.me/919217938911?text=${encodeURIComponent(message)}`, '_blank');
+    Date: ${selectedDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+    Time: ${selectedDate.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}
+    Message: ${formData.message || "N/A"}`;
 
+  // Open WhatsApp
+  window.open(
+    `https://wa.me/919217938911?text=${encodeURIComponent(message)}`,
+    "_blank",
+  );
+
+  // Send confirmation email via backend
+  try {
+    const response = await fetch(
+      "https://your-render-app.onrender.com/api/send-email",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: "Madame Marketing <ruchikasingh3105@gmail.com>",
+          to: formData.email,
+          subject: "Consultation Confirmed",
+          html: `<h2>Consultation Confirmed!</h2>
+                    <p>Thank you for booking a consultation with Madame Marketing.</p>
+                    <p>Here are your booking details:</p>
+                    <ul>
+                      <li><strong>Name:</strong> ${formData.name}</li>
+                      <li><strong>Email:</strong> ${formData.email}</li>
+                      <li><strong>Phone:</strong> ${formData.phone}</li>
+                      <li><strong>Service:</strong> ${formData.service}</li>
+                      <li><strong>Date:</strong> ${selectedDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</li>
+                      <li><strong>Time:</strong> ${selectedTime}</li>
+                    </ul>`,
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Email failed:", errorData);
+      alert("Email failed. Please try again.");
+    } else {
+      const result = await response.json();
+      console.log("Email sent successfully:", result);
+    }
+  } catch (err) {
+    console.error("Error sending email:", err);
+    alert(
+      "An error occurred while sending your confirmation email. Please try again later.",
+    );
+  }
   // Reset and close after short delay
   setTimeout(() => {
     closeModal();
