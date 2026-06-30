@@ -61,7 +61,7 @@ require("dotenv").config();
       const missing = requiredEnvVars.filter((envVar) => !process.env[envVar]);
       if (missing.length > 0) {
         console.error("[ERROR] Missing required environment variables:");
-        missing.forEach((v) => console.error(  - ${v}));
+        missing.forEach((v) => console.error(`  - ${v}`));
         console.error("\nPlease create a .env file based on .env.example");
         process.exit(1);
       }
