@@ -202,15 +202,15 @@ require("dotenv").config();
     async function createCalendarEvent(bookingData, startTime, endTime) {
       const formattedStart = startTime.toISOString();
       const formattedEnd = endTime.toISOString();
-    
+
       const event = {
-        summary: Consultation - ${bookingData.name},
+        summary: `Consultation - ${bookingData.name}`,
         description: `
     Client: ${bookingData.name}
     Email: ${bookingData.email}
     Phone: ${bookingData.phone || 'N/A'}
     Company: ${bookingData.company || 'N/A'}
-    
+
     Service: ${bookingData.service}
     Message: ${bookingData.message || 'N/A'}
         `.trim(),
@@ -224,7 +224,7 @@ require("dotenv").config();
         },
         conferenceData: {
           createRequest: {
-            requestId: booking-${Date.now()},
+            requestId: `booking-${Date.now()}`,
             conferenceSolutionKey: { type: 'hangoutsMeet' }
           }
         },
@@ -236,14 +236,14 @@ require("dotenv").config();
           ]
         }
       };
-    
+
       // Create event with Google Meet
       const response = await calendar.events.insert({
         calendarId: process.env.GOOGLE_CALENDAR_CALENDAR_ID,
         resource: event,
         conferenceDataVersion: 1
       });
-    
+
       console.log('[INFO] Calendar event created:', response.data.id);
       return response.data;
     }
@@ -294,13 +294,13 @@ require("dotenv").config();
       <strong>Time:</strong> ${startTimeStr} - ${endTimeStr}<br>
       <strong>Google Meet Link:</strong> <a href="${meetLink}" target="_blank">Join Meeting</a>
     </p>
-    
-    <p><em>This meeting has been added to your Google Calendar with automatic reminders.</em></p>`;
-    
+    // -------------------------------------------------
+    // 1️⃣ ADMIN NOTIFICATION EMAIL
+    // -------------------------------------------------
       await resend.emails.send({
-        from: Madame Marketing <${process.env.EMAIL_FROM || 'onboarding@resend.dev'}>,
+        from: `Madame Marketing <${process.env.EMAIL_FROM || 'onboarding@resend.dev'}>`,
         to: process.env.ADMIN_EMAIL,
-        subject: New Consultation Booking - ${bookingData.name},
+        subject: `New Consultation Booking - ${bookingData.name}`,
         html: adminHtml
       });
       console.log('[INFO] Admin email sent via Resend');
