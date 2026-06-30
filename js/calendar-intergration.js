@@ -316,52 +316,57 @@ bookingForm.addEventListener("submit", async (e) => {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // client timezone
   };
 
-  // Send data to backend API
-  try {
-    const response = await fetch(
-         "https://api.resend.com/emails",
-         {
-           method: "POST",
-           headers: {
-             "Content-Type": "application/json",
-             "Authorization": `Bearer re_W2EdBMZg_LkBXkgfABsrnU5G29AaoyK2W+`
-           },
-           body: JSON.stringify({
-             from: "Madame Marketing <ruchika@themadamemarketing.com>",
-             to: bookingData.email,
-             subject: "Consultation Confirmed",
-             html: `<h2>Consultation Confirmed!</h2><p>Thank you for booking a consultation with Madame Marketing.</p>`
-           }),
-         },
-       );
-    const result = await response.json();
-    if (!response.ok) {
-      console.error("Booking failed:", result);
-      alert("Booking failed: " + (result.message || "Please try again later"));
-      return;
+  // Send confirmation email using Resend
+    try {
+      const response = await fetch(
+        "https://api.resend.com/emails",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer re_W2EdBMZg_LkBXkgfABsrnU5G29AaoyK2W",
+          },
+          body: JSON.stringify({
+            from: "Madame Marketing <ruchikasingh3105@gmail.com>",
+            to: formData.email,
+            subject: "Consultation Confirmed",
+            html: `<h2>Consultation Confirmed!</h2>
+                   <p>Thank you for booking a consultation with Madame Marketing.</p>
+                   <p>Here are your booking details:</p>
+                   <ul>
+                     <li><strong>Name:</strong> ${formData.name}</li>
+                     <li><strong>Email:</strong> ${formData.email}</li>
+                     <li><strong>Phone:</strong> ${formData.phone}</li>
+                     <li><strong>Service:</strong> ${formData.service}</li>
+                     <li><strong>Date:</strong> ${selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</li>
+                     <li><strong>Time:</strong> ${selectedDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</li>
+                   </ul>`
+          })
+        }
+      );
+    
+      if (!response.ok) {
+        const result = await response.json();
+        console.error("Email failed:", result);
+        alert("Email confirmation failed. Please try again later.");
+      }
+    } catch (err) {
+      console.error("Error sending email:", err);
+      alert("An error occurred while sending your confirmation email.");
     }
-    // Success – open Meet link (already opened in backend via calendar but we also provide link)
-    if (result.data && result.data.meetingLink) {
-      window.open(result.data.meetingLink, "_blank");
-    }
-    showSuccessMessage();
-    const message = `Hi Madame Marketing!
+    const message = `Hi Madame Marketing,
     I'd like to book a consultation.
     
     Name: ${formData.name}
     Email: ${formData.email}
     Phone: ${formData.phone}
     Service: ${formData.service}
-    Date: ${selectedDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
-    Time: ${selectedTime}
-    Message: ${formData.message || "N/A"}`;
-
-    const whatsappUrl = `https://wa.me/919217938911?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, "_blank");
-  } catch (err) {
-    console.error("Error submitting booking on whatsapp:", err);
-    alert("An unexpected error occurred. Please try again later.");
-  }
+    Date: ${selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+    Time: ${selectedDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+    Message: ${formData.message || 'N/A'}`;
+    
+    // Open WhatsApp
+    window.open(`https://wa.me/919217938911?text=${encodeURIComponent(message)}`, '_blank');
 
   // Reset and close after short delay
   setTimeout(() => {
