@@ -359,7 +359,7 @@ bookingForm.addEventListener("submit", async (e) => {
     const whatsappUrl = `https://wa.me/919217938911?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
   } catch (err) {
-    console.error("Error submitting booking:", err);
+    console.error("Error submitting booking on whatsapp:", err);
     alert("An unexpected error occurred. Please try again later.");
   }
 
