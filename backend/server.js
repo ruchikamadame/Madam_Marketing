@@ -5,8 +5,8 @@ const { body, validationResult } = require("express-validator");
 const { google } = require("googleapis");
 
 // Resend (email) and optional fetch (for WhatsApp)
-const resend = new Resend(process.env.RESEND_API_KEY);
 const { Resend } = require("resend");
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Node 18+ already has global fetch. If you run an older Node version, uncomment the line below:
 // const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
