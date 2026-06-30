@@ -300,44 +300,65 @@ function updateSubmitButton() {
 // ========================================
 const bookingForm = document.getElementById("bookingForm");
 
-bookingForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  // Gather form data
-  const formData = {
-    name: document.getElementById("name").value,
-    email: document.getElementById("email").value,
-    phone: document.getElementById("phone").value,
-    company: document.getElementById("company").value,
-    service: document.getElementById("service").value,
-    message: document.getElementById("message").value,
-    date: selectedDate ? selectedDate.toISOString().split("T")[0] : null, // YYYY-MM-DD
-    time: selectedTime,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // client timezone
-  };
-
-  const message = `Hi Madame Marketing,
-    I'd like to book a consultation.
+ bookingForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
     
-    Name: ${formData.name}
-    Email: ${formData.email}
-    Phone: ${formData.phone}
-    Service: ${formData.service}
-    Date: ${selectedDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
-    Time: ${selectedDate.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}
-    Message: ${formData.message || "N/A"}`;
-
-  // Open WhatsApp
-  window.open(
-    `https://wa.me/919217938911?text=${encodeURIComponent(message)}`,
-    "_blank",
-  );
-
-  // Reset and close after short delay
-  setTimeout(() => {
-    closeModal();
-  }, 3000);
-});
+      // Gather form data
+      const formData = {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        phone: document.getElementById("phone").value,
+        company: document.getElementById("company").value,
+        service: document.getElementById("service").value,
+        message: document.getElementById("message").value,
+        date: selectedDate ? selectedDate.toISOString().split("T")[0] : null,
+        time: selectedTime,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      };
+    
+      try {
+        // Send booking data to backend
+        const response = await fetch('https://madam-marketing.onrender.com/api/book-consultation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+    
+        const result = await response.json();
+    
+        if (!response.ok) {
+          console.error("Booking failed:", result);
+          alert("Booking failed: " + (result.message || "Please try again later"));
+          return;
+        }
+    
+        // Success - open WhatsApp with booking details
+        const message = `Hi Madame Marketing,
+        I'd like to book a consultation.
+    
+        Name: ${formData.name}
+        Email: ${formData.email}
+        Phone: ${formData.phone}
+        Service: ${formData.service}
+        Date: ${selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+        Time: ${selectedTime}
+        Message: ${formData.message || 'N/A'}`;
+    
+        window.open(`https://wa.me/919217938911?text=${encodeURIComponent(message)}`, '_blank');
+    
+        // Show success message
+        showSuccessMessage();
+    
+      } catch (err) {
+        console.error("Error submitting booking:", err);
+        alert("An unexpected error occurred. Please try again later.");
+      }
+    
+      // Reset and close after short delay
+      setTimeout(() => {
+        closeModal();
+      }, 3000);
+    });
 
 function createGoogleCalendarEvent(data) {
   const dateStr = selectedDate.toISOString().split("T")[0].replace(/-/g, "");
