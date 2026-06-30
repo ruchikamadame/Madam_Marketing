@@ -316,35 +316,6 @@ bookingForm.addEventListener("submit", async (e) => {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // client timezone
   };
 
-  // Send confirmation email using Resend
-  try {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
-        },
-        body: JSON.stringify({
-          from: 'Madame Marketing <ruchikasingh3105@gmail.com>',
-          to: formData.email,
-          subject: 'Consultation Confirmed',
-          html: `<h2>Consultation Confirmed!</h2>
-                 <p>Thank you for booking a consultation with Madame Marketing.</p>`
-        })
-      });
-    
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("Email failed with status:", response.status, errorData);
-        alert(`Email failed. Status: ${response.status}. Please try again.`);
-      } else {
-        const result = await response.json();
-        console.log("Email sent successfully:", result);
-      }
-    } catch (err) {
-      console.error("Error sending email:", err);
-      alert("An error occurred while sending your confirmation email. Please try again later.");
-    }
     const message = `Hi Madame Marketing,
     I'd like to book a consultation.
     
