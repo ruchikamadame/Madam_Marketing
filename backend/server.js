@@ -149,27 +149,7 @@ app.post(
       );
 
       // Send emails to both admin and user
-      // Send confirmation email via backend
-      const emailResponse = await fetch(
-        "https://madam-marketing.onrender.com/api/send-email",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from: "Madame Marketing <ruchikasingh3105@gmail.com>",
-            to: bookingData.email,
-            subject: "Consultation Confirmed",
-            html: `<h2>Consultation Confirmed!</h2>
-                  <p>Thank you for booking a consultation with Madame Marketing.</p>`,
-          }),
-        },
-      );
-
-      if (!emailResponse.ok) {
-        console.error("Failed to send confirmation email");
-      }
+            await sendBookingEmails(bookingData, calendarEvent);
 
       res.json({
         success: true,
