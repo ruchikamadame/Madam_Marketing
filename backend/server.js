@@ -151,7 +151,7 @@ app.post(
       // Send emails to both admin and user
       // Send confirmation email via backend
       const emailResponse = await fetch(
-        "https://your-render-app.onrender.com/api/send-email",
+        "https://madam-marketing.onrender.com/api/send-email",
         {
           method: "POST",
           headers: {

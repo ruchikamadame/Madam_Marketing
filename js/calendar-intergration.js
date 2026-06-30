@@ -336,7 +336,7 @@ bookingForm.addEventListener("submit", async (e) => {
   // Send confirmation email via backend
   try {
     const response = await fetch(
-      "https://your-render-app.onrender.com/api/send-email",
+      "https://madam-marketing.onrender.com/api/send-email",
       {
         method: "POST",
         headers: {
