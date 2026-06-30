@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5500'
+  origin: process.env.FRONTEND_URL || 'http://madamemarketing.netlify.app', // Adjust this to your frontend URL
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -287,7 +287,6 @@ async function sendBookingEmails(bookingData, calendarEvent) {
   });
   console.log('[INFO] User email sent via Resend');
 }
-
 // =====================================================
 // START SERVER
 // =====================================================

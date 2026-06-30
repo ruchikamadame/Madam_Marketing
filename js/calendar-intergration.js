@@ -317,28 +317,19 @@ bookingForm.addEventListener("submit", async (e) => {
   };
 
   // Send confirmation email using Resend
-    try {
+  try {
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer re_your_api_key_here' // Replace with your actual API key
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
         },
         body: JSON.stringify({
           from: 'Madame Marketing <ruchikasingh3105@gmail.com>',
           to: formData.email,
           subject: 'Consultation Confirmed',
           html: `<h2>Consultation Confirmed!</h2>
-                 <p>Thank you for booking a consultation with Madame Marketing.</p>
-                 <p>Here are your booking details:</p>
-                 <ul>
-                   <li><strong>Name:</strong> ${formData.name}</li>
-                   <li><strong>Email:</strong> ${formData.email}</li>
-                   <li><strong>Phone:</strong> ${formData.phone}</li>
-                   <li><strong>Service:</strong> ${formData.service}</li>
-                   <li><strong>Date:</strong> ${selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</li>
-                   <li><strong>Time:</strong> ${selectedTime}</li>
-                 </ul>`
+                 <p>Thank you for booking a consultation with Madame Marketing.</p>`
         })
       });
     
