@@ -318,41 +318,41 @@ bookingForm.addEventListener("submit", async (e) => {
 
   // Send confirmation email using Resend
     try {
-      const response = await fetch(
-        "https://api.resend.com/emails",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer re_W2EdBMZg_LkBXkgfABsrnU5G29AaoyK2W",
-          },
-          body: JSON.stringify({
-            from: "Madame Marketing <ruchikasingh3105@gmail.com>",
-            to: formData.email,
-            subject: "Consultation Confirmed",
-            html: `<h2>Consultation Confirmed!</h2>
-                   <p>Thank you for booking a consultation with Madame Marketing.</p>
-                   <p>Here are your booking details:</p>
-                   <ul>
-                     <li><strong>Name:</strong> ${formData.name}</li>
-                     <li><strong>Email:</strong> ${formData.email}</li>
-                     <li><strong>Phone:</strong> ${formData.phone}</li>
-                     <li><strong>Service:</strong> ${formData.service}</li>
-                     <li><strong>Date:</strong> ${selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</li>
-                     <li><strong>Time:</strong> ${selectedDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</li>
-                   </ul>`
-          })
-        }
-      );
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer re_your_api_key_here' // Replace with your actual API key
+        },
+        body: JSON.stringify({
+          from: 'Madame Marketing <ruchikasingh3105@gmail.com>',
+          to: formData.email,
+          subject: 'Consultation Confirmed',
+          html: `<h2>Consultation Confirmed!</h2>
+                 <p>Thank you for booking a consultation with Madame Marketing.</p>
+                 <p>Here are your booking details:</p>
+                 <ul>
+                   <li><strong>Name:</strong> ${formData.name}</li>
+                   <li><strong>Email:</strong> ${formData.email}</li>
+                   <li><strong>Phone:</strong> ${formData.phone}</li>
+                   <li><strong>Service:</strong> ${formData.service}</li>
+                   <li><strong>Date:</strong> ${selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</li>
+                   <li><strong>Time:</strong> ${selectedTime}</li>
+                 </ul>`
+        })
+      });
     
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Email failed with status:", response.status, errorData);
+        alert(`Email failed. Status: ${response.status}. Please try again.`);
+      } else {
         const result = await response.json();
-        console.error("Email failed:", result);
-        alert("Email confirmation failed. Please try again later.");
+        console.log("Email sent successfully:", result);
       }
     } catch (err) {
       console.error("Error sending email:", err);
-      alert("An error occurred while sending your confirmation email.");
+      alert("An error occurred while sending your confirmation email. Please try again later.");
     }
     const message = `Hi Madame Marketing,
     I'd like to book a consultation.
