@@ -318,7 +318,7 @@ const bookingForm = document.getElementById("bookingForm");
     
       try {
         // Send booking data to backend
-        const response = await fetch('https://madam-marketing.onrender.com', {
+        const response = await fetch('https://madam-marketing.onrender.com/api/book-consultation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)

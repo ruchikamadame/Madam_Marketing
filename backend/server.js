@@ -208,43 +208,33 @@ async function createCalendarEvent(bookingData, startTime, endTime) {
     description: `
 Client: ${bookingData.name}
 Email: ${bookingData.email}
-Phone: ${bookingData.phone || "N/A"}
-Company: ${bookingData.company || "N/A"}
+Phone: ${bookingData.phone || 'N/A'}
+Company: ${bookingData.company || 'N/A'}
 
 Service: ${bookingData.service}
-Message: ${bookingData.message || "N/A"}
+Message: ${bookingData.message || 'N/A'}
     `.trim(),
     start: {
       dateTime: formattedStart,
-      timeZone: bookingData.timezone || "UTC",
+      timeZone: bookingData.timezone || 'UTC'
     },
     end: {
       dateTime: formattedEnd,
-      timeZone: bookingData.timezone || "UTC",
+      timeZone: bookingData.timezone || 'UTC'
     },
     conferenceData: {
       createRequest: {
         requestId: `booking-${Date.now()}`,
-        conferenceSolutionKey: { type: "hangoutsMeet" },
-      },
+        conferenceSolutionKey: { type: 'hangoutsMeet' }
+      }
     },
-    attendees: [
-      {
-        email: process.env.ADMIN_EMAIL,
-        organizer: true,
-        responseStatus: "accepted",
-      },
-      { email: bookingData.email, responseStatus: "needsAction" },
-    ],
     reminders: {
       useDefault: false,
       overrides: [
-        { method: "email", minutes: 1440 }, // 1 day before
-        { method: "popup", minutes: 10 }, // 10 minutes before
-      ],
-    },
-    guestCanInviteOthers: false,
-    guestsCanSeeOtherGuests: false,
+        { method: 'email', minutes: 1440 }, // 1 day before
+        { method: 'popup', minutes: 10 }    // 10 minutes before
+      ]
+    }
   };
 
   // Create event with Google Meet
@@ -254,93 +244,104 @@ Message: ${bookingData.message || "N/A"}
     conferenceDataVersion: 1,
   });
 
-  console.log("[INFO] Calendar event created:", response.data.id);
+  console.log('[INFO] Calendar event created:', response.data.id);
   return response.data;
 }
+      conferenceDataVersion: 1,
+    });
 
-/** -------------------------------------------------
- *  SEND EMAILS VIA RESEND
- * ------------------------------------------------- */
-async function sendBookingEmails(bookingData, calendarEvent) {
-  const meetingDate = new Date(calendarEvent.start.dateTime);
-  const meetingEnd = new Date(calendarEvent.end.dateTime);
+    console.log("[INFO] Calendar event created:", response.data.id);
+    return response.data;
+  }
 
-  const dateOptions = {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  };
-  const timeOptions = {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-    timeZone: bookingData.timezone || "UTC",
-  };
-
-  const dateString = meetingDate.toLocaleDateString("en-US", dateOptions);
-  const startTimeStr = meetingDate.toLocaleTimeString("en-US", timeOptions);
-  const endTimeStr = meetingEnd.toLocaleTimeString("en-US", timeOptions);
-  const meetLink = calendarEvent.hangoutLink;
-
+  /** -------------------------------------------------
+   *  SEND EMAILS VIA RESEND
+   * ------------------------------------------------- */
   // -------------------------------------------------
-  // 1️⃣ ADMIN NOTIFICATION EMAIL
-  // -------------------------------------------------
-  const adminHtml = `
-<h2>New Consultation Booking</h2>
-<p>A new consultation has been booked through the website.</p>
-<table style="border-collapse: collapse; width: 100%;">
-  <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Client Name:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.name}</td></tr>
-  <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Email:</td><td style="padding:8px; border:1px solid #ddd;"><a href="mailto:${bookingData.email}">${bookingData.email}</a></td></tr>
-  <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Phone:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.phone || "N/A"}</td></tr>
-  <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Company:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.company || "N/A"}</td></tr>
-  <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Service:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.service}</td></tr>
-  <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Message:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.message || "N/A"}</td></tr>
-</table>
+  //  SEND EMAILS VIA RESEND
+  // ------------------------------------------------- */
+  async function sendBookingEmails(bookingData, calendarEvent) {
+    const meetingDate = new Date(calendarEvent.start.dateTime);
+    const meetingEnd = new Date(calendarEvent.end.dateTime);
 
-<h3>Meeting Details</h3>
-<p>
-  <strong>Date:</strong> ${dateString}<br>
-  <strong>Time:</strong> ${startTimeStr} - ${endTimeStr}<br>
-  <strong>Google Meet Link:</strong> <a href="${meetLink}" target="_blank">Join Meeting</a>
-</p>
+    const dateOptions = {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    };
+    const timeOptions = {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: bookingData.timezone || "UTC",
+    };
 
-<p><em>This meeting has been added to your Google Calendar with automatic reminders.</em></p>`;
+    const dateString = meetingDate.toLocaleDateString("en-US", dateOptions);
+    const startTimeStr = meetingDate.toLocaleTimeString("en-US", timeOptions);
+    const endTimeStr = meetingEnd.toLocaleTimeString("en-US", timeOptions);
+    const meetLink = calendarEvent.hangoutLink;
 
-  await resend.emails.send({
-    from: `Madame Marketing <${process.env.EMAIL_FROM || "onboarding@resend.dev"}>`,
-    to: process.env.ADMIN_EMAIL,
-    subject: `New Consultation Booking - ${bookingData.name}`,
-    html: adminHtml,
-  });
-  console.log("[INFO] Admin email sent via Resend");
+    // -------------------------------------------------
+    // 1️⃣ ADMIN NOTIFICATION EMAIL
+    // -------------------------------------------------
+    const adminHtml = `
+  <h2>New Consultation Booking</h2>
+  <p>A new consultation has been booked through the website.</p>
+  <table style="border-collapse: collapse; width: 100%;">
+    <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Client Name:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.name}</td></tr>
+    <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Email:</td><td style="padding:8px; border:1px solid #ddd;"><a href="mailto:${bookingData.email}">${bookingData.email}</a></td></tr>
+    <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Phone:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.phone || 'N/A'}</td></tr>
+    <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Company:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.company || 'N/A'}</td></tr>
+    <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Service:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.service}</td></tr>
+    <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Message:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.message || 'N/A'}</td></tr>
+  </table>
 
-  // -------------------------------------------------
-  // 2️⃣ USER CONFIRMATION EMAIL
-  // -------------------------------------------------
-  const userHtml = `
-<h2>Consultation Confirmed!</h2>
-<p>Thank you for booking a consultation with Madame Marketing. Your meeting has been confirmed.</p>
+  <h3>Meeting Details</h3>
+  <p>
+    <strong>Date:</strong> ${dateString}<br>
+    <strong>Time:</strong> ${startTimeStr} - ${endTimeStr}<br>
+    <strong>Google Meet Link:</strong> <a href="${meetLink}" target="_blank">Join Meeting</a>
+  </p>
 
-<h3>Meeting Details</h3>
-<p>
-  <strong>Date:</strong> ${dateString}<br>
-  <strong>Time:</strong> ${startTimeStr} - ${endTimeStr} (${bookingData.timezone || "UTC"})<br>
-  <strong>Google Meet Link:</strong> <a href="${meetLink}" target="_blank">Join Meeting</a>
-</p>
+  <p><em>This meeting has been added to your Google Calendar with automatic reminders.
+  `;
 
-<p>We look forward to speaking with you! If you need to reschedule, just reply to this email.</p>
+    await resend.emails.send({
+      from: `Madame Marketing <${process.env.EMAIL_FROM || 'onboarding@resend.dev'}>`,
+      to: process.env.ADMIN_EMAIL,
+      subject: `New Consultation Booking - ${bookingData.name}`,
+      html: adminHtml,
+    });
+    console.log('[INFO] Admin email sent via Resend');
 
-<p>Best regards,<br>Madame Marketing Team</p>`;
+    // -------------------------------------------------
+    // 2️⃣ USER CONFIRMATION EMAIL
+    // -------------------------------------------------
+    const userHtml = `
+  <h2>Consultation Confirmed!</h2>
+  <p>Thank you for booking a consultation with Madame Marketing. Your meeting has been confirmed.</p>
 
-  await resend.emails.send({
-    from: `Madame Marketing <${process.env.EMAIL_FROM || "onboarding@resend.dev"}>`,
-    to: bookingData.email,
-    subject: `Consultation Confirmed - ${dateString} at ${startTimeStr}`,
-    html: userHtml,
-  });
-  console.log("[INFO] User email sent via Resend");
-}
+  <h3>Meeting Details</h3>
+  <p>
+    <strong>Date:</strong> ${dateString}<br>
+    <strong>Time:</strong> ${startTimeStr} - ${endTimeStr} (${bookingData.timezone || 'UTC'})<br>
+    <strong>Google Meet Link:</strong> <a href="${meetLink}" target="_blank">Join Meeting</a>
+  </p>
+
+  <p>We look forward to speaking with you! If you need to reschedule, just reply to this email.</p>
+
+  <p>Best regards,<br>Madame Marketing Team</p>
+  `;
+
+    await resend.emails.send({
+      from: `Madame Marketing <${process.env.EMAIL_FROM || 'onboarding@resend.dev'}>`,
+      to: bookingData.email,
+      subject: `Consultation Confirmed - ${dateString} at ${startTimeStr}`,
+      html: userHtml,
+    });
+    console.log('[INFO] User email sent via Resend');
+  }
 // =====================================================
 // START SERVER
 // =====================================================
