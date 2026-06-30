@@ -12,12 +12,31 @@ const { Resend } = require("resend");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// CORS Configuration - Updated for production
+const allowedOrigins = [
+  "https://themadamemarketing.com",
+  "http://localhost:5500", // Keep for local development
+];
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://madamemarketing.netlify.app", // Adjust this to your frontend URL
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        console.log(`Blocked by CORS: ${origin}`);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   }),
 );
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
