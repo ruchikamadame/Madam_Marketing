@@ -319,13 +319,21 @@ bookingForm.addEventListener("submit", async (e) => {
   // Send data to backend API
   try {
     const response = await fetch(
-      "http://localhost:3000/api/book-consultation",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      },
-    );
+         "https://api.resend.com/emails",
+         {
+           method: "POST",
+           headers: {
+             "Content-Type": "application/json",
+             "Authorization": `Bearer re_W2EdBMZg_LkBXkgfABsrnU5G29AaoyK2W+`
+           },
+           body: JSON.stringify({
+             from: "Madame Marketing <ruchika@themadamemarketing.com>",
+             to: bookingData.email,
+             subject: "Consultation Confirmed",
+             html: `<h2>Consultation Confirmed!</h2><p>Thank you for booking a consultation with Madame Marketing.</p>`
+           }),
+         },
+       );
     const result = await response.json();
     if (!response.ok) {
       console.error("Booking failed:", result);
