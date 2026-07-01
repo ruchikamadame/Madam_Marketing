@@ -54,9 +54,7 @@ const requiredEnvVars = [
   "GOOGLE_WORKSPACE_IMPERSONATE_EMAIL",
   "ADMIN_EMAIL",
   // Resend & CallMeBot configuration
-  "RESEND_API_KEY",
-  "CALLMEBOT_APIKEY",
-  "OWNER_WHATSAPP"
+  "RESEND_API_KEY"
 ];
 
 // Validate required environment variables
