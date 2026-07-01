@@ -1,0 +1,14 @@
+# robots.txt for Madame Marketing
+# This tells search engine crawlers how to behave on our site
+
+# Allow all bots to crawl everything (default behavior, but explicit is clear)
+User-agent: *
+Allow: /
+
+# Disallow any private or non-public directories (add these if you create them)
+# Disallow: /admin/
+# Disallow: /private/
+# Disallow: /tmp/
+
+# Point crawlers to our sitemap (we'll create this in Step 6)
+Sitemap: https://themadamemarketing.com/sitemap.xml
