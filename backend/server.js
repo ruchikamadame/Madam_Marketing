@@ -25,7 +25,7 @@ require("dotenv").config();
         origin: function (origin, callback) {
           // Allow requests with no origin (like mobile apps or curl requests)
           if (!origin) return callback(null, true);
-
+    
           if (allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
           } else {
@@ -202,7 +202,7 @@ require("dotenv").config();
     async function createCalendarEvent(bookingData, startTime, endTime) {
       const formattedStart = startTime.toISOString();
       const formattedEnd = endTime.toISOString();
-
+    
       const event = {
         summary: `Consultation - ${bookingData.name}`,
         description: `
@@ -210,7 +210,7 @@ require("dotenv").config();
     Email: ${bookingData.email}
     Phone: ${bookingData.phone || 'N/A'}
     Company: ${bookingData.company || 'N/A'}
-
+    
     Service: ${bookingData.service}
     Message: ${bookingData.message || 'N/A'}
         `.trim(),
@@ -236,14 +236,14 @@ require("dotenv").config();
           ]
         }
       };
-
+    
       // Create event with Google Meet
       const response = await calendar.events.insert({
         calendarId: process.env.GOOGLE_CALENDAR_CALENDAR_ID,
         resource: event,
         conferenceDataVersion: 1
       });
-
+    
       console.log('[INFO] Calendar event created:', response.data.id);
       return response.data;
     }
@@ -281,7 +281,7 @@ require("dotenv").config();
     <p>A new consultation has been booked through the website.</p>
     <table style="border-collapse: collapse; width: 100%;">
       <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Client Name:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.name}</td></tr>
-      <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Email:</td><td style="padding:8px; border:1px solid #ddd;"><a href="mailto:${bookingData.email}">${bookingData.email}</a></td></tr>
+      <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Email:</td><td style="padding:8px; border:1px solid #ddd;"><a href="mailto:${bookingData.email}">${bookingData.email}</a></a></a></td></tr>
       <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Phone:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.phone || 'N/A'}</td></tr>
       <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Company:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.company || 'N/A'}</td></tr>
       <tr><td style="padding:8px; border:1px solid #ddd; font-weight:bold;">Service:</td><td style="padding:8px; border:1px solid #ddd;">${bookingData.service}</td></tr>
@@ -294,13 +294,13 @@ require("dotenv").config();
       <strong>Time:</strong> ${startTimeStr} - ${endTimeStr}<br>
       <strong>Google Meet Link:</strong> <a href="${meetLink}" target="_blank">Join Meeting</a>
     </p>
-    // -------------------------------------------------
-    // 1️⃣ ADMIN NOTIFICATION EMAIL
-    // -------------------------------------------------
+    
+    <p><em>This meeting has been added to your Google Calendar with automatic reminders.</em></p>`;
+    
       await resend.emails.send({
         from: `Madame Marketing <${process.env.EMAIL_FROM || 'onboarding@resend.dev'}>`,
         to: process.env.ADMIN_EMAIL,
-        subject: `New Consultation Booking - ${bookingData.name}`,
+        subject: `New Consultation Booking - ${bookingData.name}` ,
         html: adminHtml
       });
       console.log('[INFO] Admin email sent via Resend');
@@ -324,9 +324,9 @@ require("dotenv").config();
     <p>Best regards,<br>Madame Marketing Team</p>`;
     
       await resend.emails.send({
-        from: Madame Marketing <${process.env.EMAIL_FROM || 'onboarding@resend.dev'}>,
+        from: `Madame Marketing <${process.env.EMAIL_FROM || 'onboarding@resend.dev'}>`,
         to: bookingData.email,
-        subject: Consultation Confirmed - ${dateString} at ${startTimeStr},
+        subject: `Consultation Confirmed - ${dateString} at ${startTimeStr}`,
         html: userHtml
       });
       console.log('[INFO] User email sent via Resend');
@@ -336,7 +336,7 @@ require("dotenv").config();
     // START SERVER
     // =====================================================
     app.listen(PORT, () => {
-      console.log([INFO] Server running on port ${PORT});
-      console.log([INFO] Environment: ${process.env.NODE_ENV || "development"});
-      console.log([INFO] Admin email: ${process.env.ADMIN_EMAIL});
+      console.log(`[INFO] Server running on port ${PORT}`);
+      console.log(`[INFO] Environment: ${process.env.NODE_ENV || "development"}`);
+      console.log(`[INFO] Admin email: ${process.env.ADMIN_EMAIL}`);
     });
